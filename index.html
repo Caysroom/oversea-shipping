@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAYS · International Shipping Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink: #1a1a18;
+  --sand: #f5f0e8;
+  --clay: #c8a97e;
+  --clay-dark: #a8845a;
+  --clay-light: #ecdfc8;
+  --smoke: #6b6860;
+  --fog: #e4dfd6;
+  --white: #fdfcfa;
+  --radius: 4px;
+}
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--sand);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+/* HEADER */
+.header {
+  background: var(--ink);
+  padding: 28px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.brand { display: flex; align-items: baseline; gap: 12px; }
+.brand-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 34px;
+  color: var(--clay);
+  letter-spacing: 0.1em;
+  line-height: 1;
+}
+.brand-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: #5a5850;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.header-note {
+  font-size: 11px;
+  color: #5a5850;
+  letter-spacing: 0.05em;
+  line-height: 1.7;
+  text-align: right;
+}
+
+/* STRIPE */
+.stripe {
+  background: var(--clay);
+  padding: 12px 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.stripe-item {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.stripe-dot { color: rgba(26,26,24,0.35); font-size: 14px; }
+
+/* MAIN */
+.main {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 40px 32px 64px;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 28px;
+  align-items: start;
+}
+
+/* CARD */
+.card {
+  background: var(--white);
+  border: 1px solid var(--fog);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(26,26,24,0.05);
+}
+.card-head {
+  background: var(--ink);
+  padding: 18px 26px;
+}
+.card-head h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--white);
+  letter-spacing: 0.02em;
+}
+.card-body { padding: 26px; }
+
+/* FORM */
+label {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--smoke);
+  margin-bottom: 7px;
+}
+select {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  background: var(--sand);
+  border: 1.5px solid var(--fog);
+  border-radius: var(--radius);
+  padding: 11px 40px 11px 14px;
+  color: var(--ink);
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%236b6860' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  transition: border-color 0.15s;
+}
+select:focus { outline: none; border-color: var(--clay); }
+
+.field-block { margin-bottom: 22px; }
+
+/* WEIGHT */
+.weight-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; }
+.weight-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 32px;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1;
+}
+.weight-unit { font-size: 14px; color: var(--smoke); font-weight: 500; }
+
+input[type="range"] {
+  width: 100%;
+  height: 3px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--fog);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  background: var(--clay);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+}
+.range-marks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 10.5px;
+  color: var(--smoke);
+  font-family: 'DM Mono', monospace;
+}
+
+input[type="number"] {
+  font-family: 'DM Mono', monospace;
+  font-size: 15px;
+  background: var(--sand);
+  border: 1.5px solid var(--fog);
+  border-radius: var(--radius);
+  padding: 9px 14px;
+  color: var(--ink);
+  width: 140px;
+  transition: border-color 0.15s;
+}
+input[type="number"]:focus { outline: none; border-color: var(--clay); }
+
+/* DIVIDER */
+.divider { height: 1px; background: var(--fog); margin: 24px 0; }
+
+/* RESULT */
+.result {
+  background: var(--sand);
+  border: 1.5px solid var(--fog);
+  border-radius: var(--radius);
+  padding: 22px;
+  transition: border-color 0.2s;
+  min-height: 140px;
+}
+.result.lit { border-color: var(--clay); }
+
+.result-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--smoke);
+  margin-bottom: 14px;
+}
+
+.route-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--clay-light);
+  border-radius: 2px;
+  padding: 3px 9px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--clay-dark);
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
+}
+
+.price-row { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; }
+.price-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 46px;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1;
+}
+.price-cur { font-size: 16px; color: var(--smoke); font-weight: 500; }
+.price-plus {
+  font-family: 'DM Mono', monospace;
+  font-size: 13.5px;
+  color: var(--clay-dark);
+  margin-bottom: 8px;
+}
+.price-meta { font-size: 12px; color: var(--smoke); line-height: 1.6; }
+
+.empty-msg { font-size: 14px; color: var(--smoke); font-style: italic; line-height: 1.6; }
+
+/* INSURANCE PILL */
+.ins-note {
+  margin-top: 16px;
+  background: var(--clay-light);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 12px;
+  color: var(--clay-dark);
+  line-height: 1.6;
+}
+.ins-note strong { font-weight: 700; }
+
+/* RIGHT PANEL */
+.zone-panel .card-head { padding: 16px 18px; }
+.zone-panel .card-head h2 { font-size: 17px; }
+
+.zone-search-wrap { padding: 12px 14px; border-bottom: 1px solid var(--fog); }
+.zone-search {
+  width: 100%;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  background: var(--sand);
+  border: 1.5px solid var(--fog);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  color: var(--ink);
+}
+.zone-search:focus { outline: none; border-color: var(--clay); }
+
+.zone-list {
+  max-height: 500px;
+  overflow-y: auto;
+}
+.zone-list::-webkit-scrollbar { width: 3px; }
+.zone-list::-webkit-scrollbar-track { background: transparent; }
+.zone-list::-webkit-scrollbar-thumb { background: var(--clay-light); border-radius: 2px; }
+
+.zone-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--fog);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.zone-row:hover { background: var(--sand); }
+.zone-row.active { background: var(--clay-light); }
+.zone-country-name { font-size: 12.5px; font-weight: 500; color: var(--ink); }
+.zone-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 500;
+  background: var(--ink);
+  color: var(--clay);
+  padding: 2px 6px;
+  border-radius: 2px;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+.zone-row.active .zone-badge { background: var(--clay); color: var(--ink); }
+
+/* FOOTER */
+.footer {
+  background: var(--ink);
+  padding: 14px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.footer p { font-size: 11px; color: #4a4840; letter-spacing: 0.04em; }
+.footer a { color: var(--clay); text-decoration: none; }
+
+@media (max-width: 700px) {
+  .main { grid-template-columns: 1fr; padding: 20px 16px 48px; }
+  .header, .stripe, .footer { padding-left: 20px; padding-right: 20px; }
+  .price-num { font-size: 36px; }
+  .header { flex-direction: column; align-items: flex-start; }
+  .header-note { text-align: left; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="brand">
+    <span class="brand-name">CAYS</span>
+    <span class="brand-tag">International Shipping</span>
+  </div>
+  <div class="header-note">
+    Powered by Thailand Post · ePacket Service<br>
+    Rates effective 6 January 2026
+  </div>
+</header>
+
+<div class="stripe">
+  <span class="stripe-item">🇹🇭 Ships from Thailand</span>
+  <span class="stripe-dot">·</span>
+  <span class="stripe-item">105 Countries</span>
+  <span class="stripe-dot">·</span>
+  <span class="stripe-item">ePacket & ePacket Plus</span>
+  <span class="stripe-dot">·</span>
+  <span class="stripe-item">Max 2 kg (5 kg to UK)</span>
+</div>
+
+<main class="main">
+
+  <!-- CALCULATOR -->
+  <div class="card">
+    <div class="card-head">
+      <h2>Shipping Rate Calculator</h2>
+    </div>
+    <div class="card-body">
+
+      <div class="field-block">
+        <label>Destination Country</label>
+        <select id="countrySelect" onchange="calculate()">
+          <option value="">— Select a country —</option>
+        </select>
+      </div>
+
+      <div class="field-block">
+        <label>Package Weight</label>
+        <div class="weight-row">
+          <span class="weight-val" id="weightVal">500</span>
+          <span class="weight-unit">g</span>
+        </div>
+        <input type="range" id="weightSlider" min="1" max="2000" value="500" step="1"
+               oninput="syncWeight(+this.value, 'slider')">
+        <div class="range-marks">
+          <span>1 g</span><span>500 g</span><span>1,000 g</span><span>1,500 g</span><span>2,000 g</span>
+        </div>
+      </div>
+
+      <div class="field-block" style="margin-top:14px;">
+        <label>Exact weight (g)</label>
+        <input type="number" id="weightNum" min="1" max="2000" value="500"
+               oninput="syncWeight(+this.value, 'num')">
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="result" id="resultBox">
+        <div class="result-label">Estimated Shipping Cost</div>
+        <div class="empty-msg" id="emptyMsg">
+          Select a destination country above to see the shipping rate.
+        </div>
+        <div id="priceBlock" style="display:none">
+          <div class="route-tag" id="routeTag">🇹🇭 TH → —</div>
+          <div class="price-row">
+            <span class="price-num" id="priceNum">—</span>
+            <span class="price-cur">THB</span>
+          </div>
+          <div class="price-plus" id="pricePlus"></div>
+          <div class="price-meta" id="priceMeta"></div>
+        </div>
+      </div>
+
+      <div class="ins-note">
+        <strong>ePacket Plus</strong> — Add insurance for +30 THB/item.
+        Covers loss or damage up to <strong>1,500 THB</strong>.
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ZONE REFERENCE -->
+  <div class="card zone-panel">
+    <div class="card-head">
+      <h2>All Destinations</h2>
+    </div>
+    <div class="zone-search-wrap">
+      <input class="zone-search" type="text" id="zoneSearch"
+             placeholder="Search country…" oninput="filterZones(this.value)">
+    </div>
+    <div class="zone-list" id="zoneList"></div>
+  </div>
+
+</main>
+
+<footer class="footer">
+  <p>Thailand Post Co., Ltd. · Announced 16 December 2025</p>
+  <p>Full info: <a href="https://www.thailandpost.co.th" target="_blank">www.thailandpost.co.th</a></p>
+</footer>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const DEST = [
+  ["Albania",11],["Algeria",8],["Australia",6],["Austria",13],["Argentina",16],
+  ["Armenia",7],["Azerbaijan",7],["Bahrain",6],["Bangladesh",6],["Belarus",5],
+  ["Belgium",13],["Bhutan",2],["Bosnia and Herzegovina",13],["Brazil",14],
+  ["Brunei",5],["Bulgaria",5],["Cambodia",1],["Canada",16],["China",1],
+  ["Colombia",14],["Cote D'Ivoire",8],["Croatia",11],["Cyprus",8],["Czech",8],
+  ["Denmark",13],["Djibouti",14],["Egypt",8],["Estonia",8],["Ethiopia",11],
+  ["Finland",11],["France",7],["Georgia",8],["Germany",9],["Ghana",11],
+  ["Greece",13],["Hong Kong",1],["Hungary",10],["Iceland",13],["India",2],
+  ["Indonesia",1],["Iran",7],["Iraq",7],["Ireland",10],["Israel",8],
+  ["Italy",10],["Japan",3],["Jordan",12],["Kazakhstan",8],["Kenya",7],
+  ["Korea Rep. (South Korea)",1],["Kuwait",7],["Kyrgyzstan",8],["Laos",1],
+  ["Lebanon",7],["Latvia",16],["Lithuania",13],["Luxembourg",11],["Macao",3],
+  ["Macedonia",14],["Madagascar",8],["Mauritius",8],["Malaysia",1],
+  ["Maldives",2],["Malta",11],["Mexico",17],["Moldava",11],["Mongolia",7],
+  ["Morocco",7],["Mozambique",11],["Myanmar",1],["Nepal",10],
+  ["Netherlands",13],["New Zealand",7],["Nigeria",7],["Norway",13],["Oman",10],
+  ["Pakistan",5],["Panama",14],["Philippines",1],["Poland",11],["Portugal",13],
+  ["Qatar",11],["Romania",10],["Russia Federation",12],["Rwanda",8],
+  ["Saudi Arabia",11],["Senegal",14],["Serbia",8],["Singapore",1],
+  ["Slovakia",16],["Slovenia",13],["South Africa",10],["Spain",15],
+  ["Sri Lanka",4],["Sweden",15],["Switzerland",13],["Taiwan",1],
+  ["Tanzania",13],["Tunisia",8],["Türkiye (Turkey)",11],
+  ["United Arab Emirates",5],["United Kingdom",7],["Uzbekistan",7],
+  ["Vietnam",1],["Zambia",11]
+].sort((a,b) => a[0].localeCompare(b[0]));
+
+// Rate table: index 0 = 1–100g, index 1 = 101–200g … index 19 = 1901–2000g
+const RATES = {
+  1:  [175,195,240,285,330,370,410,450,490,530,565,600,635,675,720,760,800,840,885,925],
+  2:  [209,229,249,285,330,370,410,450,490,530,565,600,635,675,720,760,800,840,885,925],
+  3:  [189,209,240,285,330,370,410,450,490,530,565,600,635,675,720,760,800,840,885,925],
+  4:  [200,255,310,365,420,499,549,589,639,679,729,770,820,870,920,965,1010,1055,1100,1145],
+  5:  [189,249,319,379,439,509,569,631,705,784,899,969,1039,1109,1169,1240,1314,1389,1468,1542],
+  6:  [250,275,330,385,440,490,550,605,665,720,780,835,890,950,1005,1065,1120,1180,1235,1295],
+  7:  [239,295,365,440,510,580,650,725,795,865,940,1010,1080,1150,1225,1295,1365,1440,1510,1580],
+  8:  [260,325,390,455,520,585,655,745,835,930,1020,1110,1200,1290,1380,1470,1560,1655,1745,1835],
+  9:  [259,289,339,369,420,470,520,600,650,700,770,820,870,920,1000,1065,1110,1175,1230,1280],
+  10: [286,358,429,512,598,684,770,856,941,1027,1113,1199,1285,1370,1456,1542,1628,1714,1800,1885],
+  11: [260,349,439,529,619,721,812,904,995,1087,1198,1291,1384,1477,1570,1660,1760,1865,1965,2070],
+  12: [260,325,390,455,535,635,740,840,945,1045,1150,1250,1355,1455,1555,1660,1760,1865,1965,2070],
+  13: [260,340,430,520,610,725,840,960,1075,1195,1310,1430,1545,1660,1780,1895,2015,2130,2245,2365],
+  14: [273,362,455,549,641,761,882,1008,1129,1255,1349,1473,1591,1710,1833,1952,2075,2194,2312,2436],
+  15: [289,379,459,549,639,719,829,929,1009,1099,1199,1299,1399,1499,1599,1699,1799,1899,1999,2099],
+  16: [290,385,510,635,765,890,1015,1140,1265,1390,1520,1645,1770,1895,2020,2150,2275,2400,2525,2650],
+  17: [250,275,330,390,470,550,630,710,790,870,950,1030,1110,1200,1280,1350,1430,1510,1605,1670]
+};
+
+const FLAGS = {
+  "Japan":"🇯🇵","Korea Rep. (South Korea)":"🇰🇷","China":"🇨🇳","Hong Kong":"🇭🇰",
+  "Singapore":"🇸🇬","Malaysia":"🇲🇾","Indonesia":"🇮🇩","Philippines":"🇵🇭",
+  "Vietnam":"🇻🇳","Laos":"🇱🇦","Cambodia":"🇰🇭","Myanmar":"🇲🇲","Taiwan":"🇹🇼",
+  "India":"🇮🇳","Bangladesh":"🇧🇩","Sri Lanka":"🇱🇰","Bhutan":"🇧🇹",
+  "Nepal":"🇳🇵","Maldives":"🇲🇻","Pakistan":"🇵🇰","Brunei":"🇧🇳",
+  "Australia":"🇦🇺","New Zealand":"🇳🇿","Japan":"🇯🇵","Macao":"🇲🇴",
+  "United Kingdom":"🇬🇧","France":"🇫🇷","Germany":"🇩🇪","Italy":"🇮🇹",
+  "Spain":"🇪🇸","Netherlands":"🇳🇱","Belgium":"🇧🇪","Switzerland":"🇨🇭",
+  "Austria":"🇦🇹","Sweden":"🇸🇪","Norway":"🇳🇴","Denmark":"🇩🇰",
+  "Finland":"🇫🇮","Poland":"🇵🇱","Czech":"🇨🇿","Greece":"🇬🇷",
+  "Portugal":"🇵🇹","Hungary":"🇭🇺","Romania":"🇷🇴","Bulgaria":"🇧🇬",
+  "Russia Federation":"🇷🇺","Türkiye (Turkey)":"🇹🇷","Ukraine":"🇺🇦",
+  "United Arab Emirates":"🇦🇪","Saudi Arabia":"🇸🇦","Israel":"🇮🇱",
+  "Egypt":"🇪🇬","South Africa":"🇿🇦","Kenya":"🇰🇪","Canada":"🇨🇦",
+  "Mexico":"🇲🇽","Brazil":"🇧🇷","Argentina":"🇦🇷","Colombia":"🇨🇴",
+  "Panama":"🇵🇦","Bahrain":"🇧🇭","Kuwait":"🇰🇼","Qatar":"🇶🇦",
+  "Oman":"🇴🇲","Iran":"🇮🇷","Iraq":"🇮🇶","Jordan":"🇯🇴",
+  "Kazakhstan":"🇰🇿","Belarus":"🇧🇾","United Kingdom":"🇬🇧"
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let weight = 500;
+let selectedCountry = null;
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+function init() {
+  const sel = document.getElementById('countrySelect');
+  DEST.forEach(([name]) => {
+    const o = document.createElement('option');
+    o.value = name; o.textContent = name;
+    sel.appendChild(o);
+  });
+  renderZones(DEST);
+}
+
+function renderZones(list) {
+  document.getElementById('zoneList').innerHTML = list.map(([name, zone]) => `
+    <div class="zone-row ${selectedCountry === name ? 'active' : ''}"
+         onclick="pickFromList('${name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">
+      <span class="zone-country-name">${name}</span>
+      <span class="zone-badge">Z${zone}</span>
+    </div>
+  `).join('');
+}
+
+function filterZones(q) {
+  const lq = q.toLowerCase();
+  renderZones(DEST.filter(([n]) => n.toLowerCase().includes(lq)));
+}
+
+function pickFromList(name) {
+  document.getElementById('countrySelect').value = name;
+  selectedCountry = name;
+  calculate();
+  const q = document.getElementById('zoneSearch').value.toLowerCase();
+  renderZones(DEST.filter(([n]) => n.toLowerCase().includes(q)));
+}
+
+// ── WEIGHT ────────────────────────────────────────────────────────────────────
+function syncWeight(val, source) {
+  let v = Math.max(1, Math.min(2000, val || 1));
+  weight = v;
+  document.getElementById('weightVal').textContent = v;
+  if (source !== 'slider') document.getElementById('weightSlider').value = v;
+  if (source !== 'num')    document.getElementById('weightNum').value = v;
+  calculate();
+}
+
+// ── CALCULATE ─────────────────────────────────────────────────────────────────
+function getRate(zone, g) {
+  const idx = Math.min(Math.max(Math.ceil(g / 100) - 1, 0), 19);
+  return RATES[zone][idx];
+}
+
+function calculate() {
+  const name = document.getElementById('countrySelect').value;
+  selectedCountry = name || null;
+
+  const q = document.getElementById('zoneSearch').value.toLowerCase();
+  renderZones(DEST.filter(([n]) => n.toLowerCase().includes(q)));
+
+  if (!name) {
+    document.getElementById('emptyMsg').style.display = '';
+    document.getElementById('priceBlock').style.display = 'none';
+    document.getElementById('resultBox').classList.remove('lit');
+    return;
+  }
+
+  const entry = DEST.find(([n]) => n === name);
+  if (!entry) return;
+  const zone = entry[1];
+  const rate = getRate(zone, weight);
+  const bracketIdx = Math.min(Math.max(Math.ceil(weight / 100) - 1, 0), 19);
+  const bracketFrom = bracketIdx * 100 + 1;
+  const bracketTo   = (bracketIdx + 1) * 100;
+
+  document.getElementById('emptyMsg').style.display = 'none';
+  document.getElementById('priceBlock').style.display = '';
+  document.getElementById('resultBox').classList.add('lit');
+
+  const flag = FLAGS[name] || '🌍';
+  document.getElementById('routeTag').textContent = `🇹🇭 TH → ${flag} ${name}`;
+  document.getElementById('priceNum').textContent  = rate.toLocaleString();
+  document.getElementById('pricePlus').textContent = `ePacket Plus (insured): ${(rate+30).toLocaleString()} THB`;
+  document.getElementById('priceMeta').innerHTML   =
+    `Zone ${zone} &nbsp;·&nbsp; Weight bracket ${bracketFrom}–${bracketTo} g` +
+    (name === 'United Kingdom' ? '<br>UK special: accepts up to 5,000 g' : '');
+}
+
+init();
+</script>
+</body>
+</html>
