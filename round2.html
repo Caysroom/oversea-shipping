@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAYS · Round 2 Single Item Shipping</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --ink:       #1a1a18;
+  --choc:      #4a3424;
+  --sand:      #f5f0e8;
+  --clay:      #c8a97e;
+  --clay-dark: #a8845a;
+  --clay-pale: #ecdfc8;
+  --smoke:     #6b6860;
+  --fog:       #e4dfd6;
+  --white:     #fdfcfa;
+}
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--sand);
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+/* HEADER */
+.header {
+  background: var(--choc);
+  padding: 22px 48px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+}
+.brand { display: flex; align-items: baseline; gap: 14px; }
+.brand-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 36px; color: var(--clay);
+  letter-spacing: 0.1em; line-height: 1;
+}
+.brand-sub {
+  font-size: 10.5px; font-weight: 600; color: #e8ddc8;
+  letter-spacing: 0.22em; text-transform: uppercase;
+}
+.header-q { font-size: 13px; color: #e8ddc8; font-style: italic; }
+/* CLAY BAR */
+.clay-bar {
+  background: var(--clay);
+  padding: 10px 48px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.clay-bar span {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.13em;
+  text-transform: uppercase; color: var(--ink);
+}
+.clay-bar .dot { opacity: 0.3; }
+/* MAIN */
+.main {
+  flex: 1; max-width: 900px; width: 100%;
+  margin: 36px auto 0; padding: 0 32px 60px;
+}
+.panel {
+  background: var(--white);
+  border: 1.5px solid var(--clay);
+  border-radius: 8px; overflow: hidden;
+}
+.panel-inner { display: grid; grid-template-columns: 1fr 300px; gap: 0; }
+.panel-left { padding: 28px; }
+.panel-right { border-left: 1px solid var(--fog); background: #faf7f1; }
+/* INTRO */
+.intro {
+  font-size: 14px; color: var(--smoke); line-height: 1.6;
+  margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--fog);
+}
+.intro strong { color: var(--ink); }
+/* FIELD */
+.field { margin-bottom: 22px; }
+.field-label {
+  display: block; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--smoke); margin-bottom: 8px;
+}
+select {
+  font-family: 'DM Sans', sans-serif; font-size: 15px;
+  background: var(--sand); border: 1.5px solid var(--fog);
+  border-radius: 6px; padding: 12px 40px 12px 14px;
+  color: var(--ink); width: 100%; appearance: none; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%236b6860' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+select:focus { outline: none; border-color: var(--clay); box-shadow: 0 0 0 3px rgba(200,169,126,0.15); }
+/* BOXSET CARD */
+.boxset-card {
+  background: var(--sand); border: 1.5px solid var(--fog);
+  border-radius: 6px; padding: 18px; margin-bottom: 22px;
+  display: flex; align-items: center; gap: 14px;
+}
+.boxset-icon {
+  width: 48px; height: 48px; background: var(--choc);
+  border-radius: 8px; display: flex; align-items: center;
+  justify-content: center; font-size: 24px; flex-shrink: 0;
+}
+.boxset-info h3 { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 3px; }
+.boxset-info p { font-size: 12.5px; color: var(--smoke); line-height: 1.5; }
+/* ITEM ROWS */
+.item-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 0; border-bottom: 1px solid var(--fog);
+}
+.item-row:last-of-type { border-bottom: none; }
+.item-icon {
+  width: 44px; height: 44px; background: var(--clay-pale);
+  border-radius: 8px; display: flex; align-items: center;
+  justify-content: center; font-size: 22px; flex-shrink: 0;
+}
+.item-detail { flex: 1; }
+.item-name { font-size: 15px; font-weight: 600; color: var(--ink); }
+.qty-control {
+  display: flex; align-items: center; gap: 0;
+  border: 1.5px solid var(--fog); border-radius: 6px; overflow: hidden;
+}
+.qty-btn {
+  width: 34px; height: 34px; background: var(--sand);
+  border: none; cursor: pointer; font-size: 18px; color: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.1s; font-family: 'DM Mono', monospace;
+}
+.qty-btn:hover { background: var(--clay-pale); }
+.qty-btn:active { background: var(--clay); }
+.qty-val {
+  width: 40px; text-align: center; font-family: 'DM Mono', monospace;
+  font-size: 15px; font-weight: 500; color: var(--ink);
+}
+/* DIVIDER */
+.divider { height: 1px; background: var(--fog); margin: 20px 0; }
+/* RESULT */
+.result-box {
+  background: var(--sand); border: 1.5px solid var(--fog);
+  border-radius: 6px; padding: 22px;
+  transition: border-color 0.25s, background 0.25s;
+}
+.result-box.active { border-color: var(--clay); background: var(--white); }
+.result-prompt {
+  font-size: 14px; color: var(--smoke); text-align: center;
+  padding: 14px 0 6px; line-height: 1.6;
+}
+.result-inner { display: none; }
+.result-inner.show { display: block; }
+.dest-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--fog);
+}
+.dest-flag { font-size: 24px; line-height: 1; }
+.dest-name { font-size: 18px; font-weight: 600; color: var(--ink); flex: 1; }
+.dest-origin { font-size: 12px; color: var(--smoke); }
+.price-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.price-amount {
+  font-family: 'DM Mono', monospace; font-size: 54px;
+  font-weight: 500; color: var(--ink); line-height: 1;
+}
+.price-currency { font-size: 18px; color: var(--smoke); font-weight: 600; }
+.price-note { font-size: 13px; color: var(--smoke); line-height: 1.6; }
+.price-note strong { color: var(--ink); }
+/* RIGHT PANEL */
+.right-head { padding: 18px 20px 14px; border-bottom: 1px solid var(--fog); }
+.right-head h2 { font-family: 'DM Serif Display', serif; font-size: 17px; color: var(--ink); }
+.right-head p { font-size: 12px; color: var(--smoke); margin-top: 3px; }
+.search-wrap { padding: 12px 14px; border-bottom: 1px solid var(--fog); }
+.country-search {
+  width: 100%; font-size: 13px; background: var(--white);
+  border: 1.5px solid var(--fog); border-radius: 6px;
+  padding: 8px 12px; color: var(--ink);
+}
+.country-search::placeholder { color: #b0ada6; }
+.country-search:focus { outline: none; border-color: var(--clay); }
+.country-list { max-height: 460px; overflow-y: auto; }
+.country-list::-webkit-scrollbar { width: 3px; }
+.country-list::-webkit-scrollbar-thumb { background: var(--clay-pale); border-radius: 2px; }
+.country-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 16px; border-bottom: 1px solid var(--fog);
+  cursor: pointer; transition: background 0.1s;
+}
+.country-row:hover { background: var(--white); }
+.country-row.active { background: var(--clay-pale); }
+.c-flag { font-size: 16px; flex-shrink: 0; }
+.c-name { font-size: 13px; font-weight: 500; color: var(--ink); }
+.country-row.active .c-name { color: var(--clay-dark); font-weight: 600; }
+/* MOBILE */
+@media (max-width: 680px) {
+  .main { padding: 0 16px 48px; margin-top: 20px; }
+  .panel-inner { grid-template-columns: 1fr; }
+  .panel-right { border-left: none; border-top: 1px solid var(--fog); }
+  .header, .clay-bar { padding-left: 20px; padding-right: 20px; }
+  .price-amount { font-size: 44px; }
+  .header-q { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="brand">
+    <span class="brand-name">CAYS</span>
+    <span class="brand-sub">Round 2 · Single Items</span>
+  </div>
+  <span class="header-q">Find out your shipping cost</span>
+</header>
+
+<div class="clay-bar">
+  <span>Ships from Thailand</span>
+  <span class="dot">·</span>
+  <span>105 Countries</span>
+</div>
+
+<main class="main">
+  <div class="panel">
+    <div class="panel-inner">
+      <div class="panel-left">
+        <p class="intro">
+          <strong>Round 2 — Single Items.</strong> Choose the pieces you want and pick your country —
+          we'll show your shipping cost right away.
+        </p>
+
+        <div class="field-label">Choose your items</div>
+
+        <div class="item-row">
+          <div class="item-icon">🧥</div>
+          <div class="item-detail">
+            <div class="item-name">Hoodie</div>
+          </div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('hoodie',-1)">−</button>
+            <span class="qty-val" id="qtyHoodie">0</span>
+            <button class="qty-btn" onclick="changeQty('hoodie',1)">+</button>
+          </div>
+        </div>
+
+        <div class="item-row">
+          <div class="item-icon">👕</div>
+          <div class="item-detail">
+            <div class="item-name">Boxy T-shirt</div>
+          </div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('tee',-1)">−</button>
+            <span class="qty-val" id="qtyTee">0</span>
+            <button class="qty-btn" onclick="changeQty('tee',1)">+</button>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top: 28px;">
+          <label class="field-label">Where are we shipping to?</label>
+          <select id="countrySelect" onchange="calculate()">
+            <option value="">— Choose your country —</option>
+          </select>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="result-box" id="resultBox">
+          <div class="result-prompt" id="resultPrompt">
+            Choose your items and country<br>to see your shipping cost.
+          </div>
+          <div class="result-inner" id="resultInner">
+            <div class="dest-row">
+              <span class="dest-flag" id="destFlag">🌍</span>
+              <span class="dest-name" id="destName"></span>
+              <span class="dest-origin">🇹🇭 From Thailand</span>
+            </div>
+            <div class="price-row">
+              <span class="price-amount" id="priceAmount"></span>
+              <span class="price-currency">THB</span>
+            </div>
+            <div class="price-note" id="priceNote"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-right">
+        <div class="right-head">
+          <h2>Countries</h2>
+          <p>Tap to select.</p>
+        </div>
+        <div class="search-wrap">
+          <input class="country-search" type="text" id="countrySearch"
+                 placeholder="Search countries…" oninput="filterList(this.value)">
+        </div>
+        <div class="country-list" id="countryList"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   ║  EDIT YOUR WEIGHTS HERE  —  the ONLY section you need to change           ║
+   ═══════════════════════════════════════════════════════════════════════════
+   All weights are in GRAMS. Update these once you weigh your real items.   */
+const WEIGHTS = {
+  hoodie:    450,   // weight of ONE hoodie (grams)  ← EDIT
+  tee:       250,   // weight of ONE boxy t-shirt (grams)  ← EDIT
+  packaging: 100,   // mailer/box weight added to every parcel (grams)  ← EDIT
+};
+/* SAFETY BUFFER ("bump at the ceiling" rule). If a parcel's weight lands
+   within BUFFER_GAP grams of a bracket ceiling, it bumps to the next tier
+   so you never undercharge. Set 0 to disable.                              */
+const BUFFER_GAP = 50;   // grams  ← EDIT
+
+const RATES = {
+  1:  [250,250,300,350,400,400,450,500,550,600,600,650,700,750,750,800,850,900,950,1000],
+  2:  [250,300,300,350,400,400,450,500,550,600,600,650,700,750,750,800,850,900,950,1000],
+  3:  [250,250,300,350,400,400,450,500,550,600,600,650,700,750,750,800,850,900,950,1000],
+  4:  [250,300,350,400,450,550,600,650,700,750,800,800,850,900,950,1000,1050,1100,1150,1200],
+  5:  [250,300,350,450,500,550,600,700,750,850,950,1000,1100,1150,1200,1300,1350,1450,1500,1600],
+  6:  [300,350,400,450,500,550,600,650,700,750,850,900,950,1000,1050,1100,1150,1250,1300,1350],
+  7:  [300,350,400,500,550,650,700,800,850,900,1000,1050,1150,1200,1300,1350,1400,1500,1550,1650],
+  8:  [300,400,450,500,550,650,700,800,900,1000,1050,1150,1250,1350,1450,1500,1600,1700,1800,1900],
+  9:  [300,350,400,400,450,500,550,650,700,750,800,850,900,950,1050,1100,1150,1250,1300,1350],
+  10: [350,400,500,550,650,750,800,900,1000,1100,1150,1250,1350,1400,1500,1600,1700,1750,1850,1950],
+  11: [300,400,500,600,650,800,850,950,1050,1150,1250,1350,1450,1550,1600,1700,1800,1900,2000,2100],
+  12: [300,400,450,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100],
+  13: [300,400,500,550,650,800,900,1000,1150,1250,1350,1500,1600,1700,1850,1950,2050,2200,2300,2400],
+  14: [350,400,500,600,700,800,950,1050,1200,1300,1400,1550,1650,1750,1900,2000,2150,2250,2350,2500],
+  15: [350,450,500,600,700,750,900,1000,1050,1150,1250,1350,1450,1550,1650,1750,1850,1950,2050,2150],
+  16: [350,450,550,700,800,950,1050,1200,1300,1450,1550,1700,1800,1950,2050,2200,2350,2450,2600,2700],
+  17: [300,350,400,450,500,600,700,750,850,900,1000,1100,1150,1250,1350,1400,1500,1550,1650,1700]
+};
+
+const DEST = [
+  ["Albania",11],["Algeria",8],["Argentina",16],["Armenia",7],["Australia",6],
+  ["Austria",13],["Azerbaijan",7],["Bahrain",6],["Bangladesh",6],["Belarus",5],
+  ["Belgium",13],["Bhutan",2],["Bosnia and Herzegovina",13],["Brazil",14],
+  ["Brunei",5],["Bulgaria",5],["Cambodia",1],["Canada",16],["China",1],
+  ["Colombia",14],["Cote D'Ivoire",8],["Croatia",11],["Cyprus",8],["Czech Republic",8],
+  ["Denmark",13],["Djibouti",14],["Egypt",8],["Estonia",8],["Ethiopia",11],
+  ["Finland",11],["France",7],["Georgia",8],["Germany",9],["Ghana",11],
+  ["Greece",13],["Hong Kong",1],["Hungary",10],["Iceland",13],["India",2],
+  ["Indonesia",1],["Iran",7],["Iraq",7],["Ireland",10],["Israel",8],
+  ["Italy",10],["Japan",3],["Jordan",12],["Kazakhstan",8],["Kenya",7],
+  ["South Korea",1],["Kuwait",7],["Kyrgyzstan",8],["Laos",1],["Latvia",16],
+  ["Lebanon",7],["Lithuania",13],["Luxembourg",11],["Macao",3],["Madagascar",8],
+  ["Macedonia",14],["Malaysia",1],["Maldives",2],["Malta",11],["Mauritius",8],
+  ["Mexico",17],["Moldova",11],["Mongolia",7],["Morocco",7],["Mozambique",11],
+  ["Myanmar",1],["Nepal",10],["Netherlands",13],["New Zealand",7],["Nigeria",7],
+  ["Norway",13],["Oman",10],["Pakistan",5],["Panama",14],["Philippines",1],
+  ["Poland",11],["Portugal",13],["Qatar",11],["Romania",10],["Russia",12],
+  ["Rwanda",8],["Saudi Arabia",11],["Senegal",14],["Serbia",8],["Singapore",1],
+  ["Slovakia",16],["Slovenia",13],["South Africa",10],["Spain",15],["Sri Lanka",4],
+  ["Sweden",15],["Switzerland",13],["Taiwan",1],["Tanzania",13],["Tunisia",8],
+  ["Turkey",11],["United Arab Emirates",5],["United Kingdom",7],["Uzbekistan",7],
+  ["Vietnam",1],["Zambia",11]
+].sort((a,b) => a[0].localeCompare(b[0]));
+
+const FLAGS = {
+  "Albania":"🇦🇱","Algeria":"🇩🇿","Argentina":"🇦🇷","Armenia":"🇦🇲",
+  "Australia":"🇦🇺","Austria":"🇦🇹","Azerbaijan":"🇦🇿","Bahrain":"🇧🇭",
+  "Bangladesh":"🇧🇩","Belarus":"🇧🇾","Belgium":"🇧🇪","Bhutan":"🇧🇹",
+  "Bosnia and Herzegovina":"🇧🇦","Brazil":"🇧🇷","Brunei":"🇧🇳","Bulgaria":"🇧🇬",
+  "Cambodia":"🇰🇭","Canada":"🇨🇦","China":"🇨🇳","Colombia":"🇨🇴",
+  "Cote D'Ivoire":"🇨🇮","Croatia":"🇭🇷","Cyprus":"🇨🇾","Czech Republic":"🇨🇿",
+  "Denmark":"🇩🇰","Djibouti":"🇩🇯","Egypt":"🇪🇬","Estonia":"🇪🇪",
+  "Ethiopia":"🇪🇹","Finland":"🇫🇮","France":"🇫🇷","Georgia":"🇬🇪",
+  "Germany":"🇩🇪","Ghana":"🇬🇭","Greece":"🇬🇷","Hong Kong":"🇭🇰",
+  "Hungary":"🇭🇺","Iceland":"🇮🇸","India":"🇮🇳","Indonesia":"🇮🇩",
+  "Iran":"🇮🇷","Iraq":"🇮🇶","Ireland":"🇮🇪","Israel":"🇮🇱",
+  "Italy":"🇮🇹","Japan":"🇯🇵","Jordan":"🇯🇴","Kazakhstan":"🇰🇿",
+  "Kenya":"🇰🇪","South Korea":"🇰🇷","Kuwait":"🇰🇼","Kyrgyzstan":"🇰🇬",
+  "Laos":"🇱🇦","Latvia":"🇱🇻","Lebanon":"🇱🇧","Lithuania":"🇱🇹",
+  "Luxembourg":"🇱🇺","Macao":"🇲🇴","Macedonia":"🇲🇰","Madagascar":"🇲🇬",
+  "Malaysia":"🇲🇾","Maldives":"🇲🇻","Malta":"🇲🇹","Mauritius":"🇲🇺",
+  "Mexico":"🇲🇽","Moldova":"🇲🇩","Mongolia":"🇲🇳","Morocco":"🇲🇦",
+  "Mozambique":"🇲🇿","Myanmar":"🇲🇲","Nepal":"🇳🇵","Netherlands":"🇳🇱",
+  "New Zealand":"🇳🇿","Nigeria":"🇳🇬","Norway":"🇳🇴","Oman":"🇴🇲",
+  "Pakistan":"🇵🇰","Panama":"🇵🇦","Philippines":"🇵🇭","Poland":"🇵🇱",
+  "Portugal":"🇵🇹","Qatar":"🇶🇦","Romania":"🇷🇴","Russia":"🇷🇺",
+  "Rwanda":"🇷🇼","Saudi Arabia":"🇸🇦","Senegal":"🇸🇳","Serbia":"🇷🇸",
+  "Singapore":"🇸🇬","Slovakia":"🇸🇰","Slovenia":"🇸🇮","South Africa":"🇿🇦",
+  "Spain":"🇪🇸","Sri Lanka":"🇱🇰","Sweden":"🇸🇪","Switzerland":"🇨🇭",
+  "Taiwan":"🇹🇼","Tanzania":"🇹🇿","Tunisia":"🇹🇳","Turkey":"🇹🇷",
+  "United Arab Emirates":"🇦🇪","United Kingdom":"🇬🇧","Uzbekistan":"🇺🇿",
+  "Vietnam":"🇻🇳","Zambia":"🇿🇲"
+};
+
+function priceFor(zone, grams) {
+  let idx = Math.ceil(grams / 100) - 1;
+  if ((idx + 1) * 100 - grams < BUFFER_GAP) idx += 1;
+  idx = Math.min(Math.max(idx, 0), 19);
+  return RATES[zone][idx];
+}
+function renderList(list) {
+  document.getElementById('countryList').innerHTML = list.map(([name]) =>
+    `<div class="country-row${selected===name?' active':''}" onclick="pickCountry('${name.replace(/'/g,"\\'")}')">
+      <span class="c-flag">${FLAGS[name]||'🌍'}</span>
+      <span class="c-name">${name}</span>
+    </div>`
+  ).join('');
+}
+function filterList(q) {
+  renderList(DEST.filter(([n]) => n.toLowerCase().includes(q.toLowerCase())));
+}
+
+let selected = null;
+let qty = { hoodie: 0, tee: 0 };
+
+(function() {
+  const sel = document.getElementById('countrySelect');
+  DEST.forEach(([name]) => {
+    const o = document.createElement('option');
+    o.value = name; o.textContent = name;
+    sel.appendChild(o);
+  });
+  renderList(DEST);
+})();
+
+function changeQty(item, delta) {
+  qty[item] = Math.max(0, Math.min(20, qty[item] + delta));
+  document.getElementById('qty'+item.charAt(0).toUpperCase()+item.slice(1)).textContent = qty[item];
+  calculate();
+}
+
+function cartWeight() {
+  const itemsW = qty.hoodie*WEIGHTS.hoodie + qty.tee*WEIGHTS.tee;
+  return itemsW > 0 ? itemsW + WEIGHTS.packaging : 0;
+}
+
+function pickCountry(name) {
+  document.getElementById('countrySelect').value = name;
+  selected = name;
+  calculate();
+  const q = document.getElementById('countrySearch').value.toLowerCase();
+  renderList(DEST.filter(([n]) => n.toLowerCase().includes(q)));
+}
+
+function calculate() {
+  const name = document.getElementById('countrySelect').value;
+  selected = name || null;
+  const q = document.getElementById('countrySearch').value.toLowerCase();
+  renderList(DEST.filter(([n]) => n.toLowerCase().includes(q)));
+
+  const box=document.getElementById('resultBox'), pr=document.getElementById('resultPrompt'), inn=document.getElementById('resultInner');
+  const g = cartWeight();
+
+  if (!name || g === 0) {
+    box.classList.remove('active'); inn.classList.remove('show'); pr.style.display='';
+    pr.innerHTML = (g===0)
+      ? 'Choose your items and country<br>to see your shipping cost.'
+      : 'Choose a country<br>to see your shipping cost.';
+    return;
+  }
+  if (g > 2000 && name !== 'United Kingdom') {
+    box.classList.add('active'); inn.classList.remove('show'); pr.style.display='';
+    pr.innerHTML = '⚠️ This parcel is over 2 kg.<br>Please contact us for a custom quote.';
+    return;
+  }
+
+  const zone = DEST.find(([n])=>n===name)[1];
+  const price = priceFor(zone, g);
+  const isUK = name === 'United Kingdom';
+  const parts = [];
+  if (qty.hoodie) parts.push(qty.hoodie + ' Hoodie' + (qty.hoodie>1?'s':''));
+  if (qty.tee)    parts.push(qty.tee + ' Boxy T-shirt' + (qty.tee>1?'s':''));
+
+  box.classList.add('active'); pr.style.display='none'; inn.classList.add('show');
+  document.getElementById('destFlag').textContent = FLAGS[name]||'🌍';
+  document.getElementById('destName').textContent = name;
+  document.getElementById('priceAmount').textContent = price.toLocaleString();
+  document.getElementById('priceNote').innerHTML =
+    `Shipping ${parts.join(' + ')} to <strong>${name}</strong>.` +
+    (isUK ? ' Parcels to the UK can weigh up to 5,000 g.' : '');
+}
+</script>
+</body>
+</html>
