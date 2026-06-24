@@ -212,7 +212,7 @@ select:focus { outline: none; border-color: var(--clay); box-shadow: 0 0 0 3px r
 <div class="clay-bar">
   <span>Ships from Thailand</span>
   <span class="dot">·</span>
-  <span>105 Countries</span>
+  <span>Worldwide</span>
 </div>
 
 <main class="main">
@@ -228,9 +228,7 @@ select:focus { outline: none; border-color: var(--clay); box-shadow: 0 0 0 3px r
 
         <div class="item-row">
           <div class="item-icon">🧥</div>
-          <div class="item-detail">
-            <div class="item-name">Hoodie</div>
-          </div>
+          <div class="item-detail"><div class="item-name">Hoodie</div></div>
           <div class="qty-control">
             <button class="qty-btn" onclick="changeQty('hoodie',-1)">−</button>
             <span class="qty-val" id="qtyHoodie">0</span>
@@ -240,9 +238,7 @@ select:focus { outline: none; border-color: var(--clay); box-shadow: 0 0 0 3px r
 
         <div class="item-row">
           <div class="item-icon">👕</div>
-          <div class="item-detail">
-            <div class="item-name">Boxy T-shirt</div>
-          </div>
+          <div class="item-detail"><div class="item-name">Boxy T-shirt</div></div>
           <div class="qty-control">
             <button class="qty-btn" onclick="changeQty('tee',-1)">−</button>
             <span class="qty-val" id="qtyTee">0</span>
@@ -299,14 +295,14 @@ select:focus { outline: none; border-color: var(--clay); box-shadow: 0 0 0 3px r
    ═══════════════════════════════════════════════════════════════════════════
    All weights are in GRAMS. Update these once you weigh your real items.   */
 const WEIGHTS = {
-  hoodie:    1100,   // weight of ONE hoodie (grams)  ← EDIT
-  tee:       350,   // weight of ONE boxy t-shirt (grams)  ← EDIT
-  packaging: 50,   // mailer/box weight added to every parcel (grams)  ← EDIT
+  hoodie:    450,   // weight of ONE hoodie (grams)  ← EDIT
+  tee:       250,   // weight of ONE boxy t-shirt (grams)  ← EDIT
+  packaging: 100,   // mailer/box weight added to every parcel (grams)  ← EDIT
 };
 /* SAFETY BUFFER ("bump at the ceiling" rule). If a parcel's weight lands
    within BUFFER_GAP grams of a bracket ceiling, it bumps to the next tier
    so you never undercharge. Set 0 to disable.                              */
-const BUFFER_GAP = 40;   // grams  ← EDIT
+const BUFFER_GAP = 50;   // grams  ← EDIT
 
 const RATES = {
   1:  [250,250,300,350,400,400,450,500,550,600,600,650,700,750,750,800,850,900,950,1000],
@@ -326,6 +322,13 @@ const RATES = {
   15: [350,450,500,600,700,750,900,1000,1050,1150,1250,1350,1450,1550,1650,1750,1850,1950,2050,2150],
   16: [350,450,550,700,800,950,1050,1200,1300,1450,1550,1700,1800,1950,2050,2200,2350,2450,2600,2700],
   17: [300,350,400,450,500,600,700,750,850,900,1000,1100,1150,1250,1350,1400,1500,1550,1650,1700]
+};
+
+// United States — ePacket DDP (all-in price incl. duties). Up to 5 kg.
+// Index 0-19 = 100g steps (1-2000g); index 20-25 = 500g steps (2001-5000g).
+const US_RATES = {
+  US1: [400,450,550,600,700,750,850,950,1050,1100,1200,1300,1350,1450,1550,1650,1700,1800,1900,2000,2300,2650,2950,3300,3650,3950],
+  US2: [450,550,700,800,950,1050,1100,1150,1250,1350,1450,1500,1600,1700,1750,1800,1900,1950,2050,2200,2600,2950,3350,3750,4100,4500]
 };
 
 const DEST = [
@@ -349,8 +352,9 @@ const DEST = [
   ["Rwanda",8],["Saudi Arabia",11],["Senegal",14],["Serbia",8],["Singapore",1],
   ["Slovakia",16],["Slovenia",13],["South Africa",10],["Spain",15],["Sri Lanka",4],
   ["Sweden",15],["Switzerland",13],["Taiwan",1],["Tanzania",13],["Tunisia",8],
-  ["Turkey",11],["United Arab Emirates",5],["United Kingdom",7],["Uzbekistan",7],
-  ["Vietnam",1],["Zambia",11]
+  ["Turkey",11],["United Arab Emirates",5],["United Kingdom",7],
+  ["United States (Mainland)","US1"],["United States (Alaska, Hawaii & Territories)","US2"],
+  ["Uzbekistan",7],["Vietnam",1],["Zambia",11]
 ].sort((a,b) => a[0].localeCompare(b[0]));
 
 const FLAGS = {
@@ -379,11 +383,30 @@ const FLAGS = {
   "Singapore":"🇸🇬","Slovakia":"🇸🇰","Slovenia":"🇸🇮","South Africa":"🇿🇦",
   "Spain":"🇪🇸","Sri Lanka":"🇱🇰","Sweden":"🇸🇪","Switzerland":"🇨🇭",
   "Taiwan":"🇹🇼","Tanzania":"🇹🇿","Tunisia":"🇹🇳","Turkey":"🇹🇷",
-  "United Arab Emirates":"🇦🇪","United Kingdom":"🇬🇧","Uzbekistan":"🇺🇿",
-  "Vietnam":"🇻🇳","Zambia":"🇿🇲"
+  "United Arab Emirates":"🇦🇪","United Kingdom":"🇬🇧",
+  "United States (Mainland)":"🇺🇸","United States (Alaska, Hawaii & Territories)":"🇺🇸",
+  "Uzbekistan":"🇺🇿","Vietnam":"🇻🇳","Zambia":"🇿🇲"
 };
 
+function isUSZone(z) { return z === 'US1' || z === 'US2'; }
+function maxWeightFor(zone) { return isUSZone(zone) ? 5000 : 2000; }
+
 function priceFor(zone, grams) {
+  if (isUSZone(zone)) {
+    const arr = US_RATES[zone];
+    let idx;
+    if (grams <= 2000) {
+      idx = Math.ceil(grams / 100) - 1;
+      const ceiling = (idx + 1) * 100;
+      if (ceiling - grams < BUFFER_GAP) idx += 1;
+    } else {
+      idx = 19 + Math.ceil((grams - 2000) / 500);
+      const ceiling = 2000 + (idx - 19) * 500;
+      if (ceiling - grams < BUFFER_GAP) idx += 1;
+    }
+    idx = Math.min(Math.max(idx, 0), arr.length - 1);
+    return arr[idx];
+  }
   let idx = Math.ceil(grams / 100) - 1;
   if ((idx + 1) * 100 - grams < BUFFER_GAP) idx += 1;
   idx = Math.min(Math.max(idx, 0), 19);
@@ -449,15 +472,16 @@ function calculate() {
       : 'Choose a country<br>to see your shipping cost.';
     return;
   }
-  if (g > 2000 && name !== 'United Kingdom') {
+
+  const zone = DEST.find(([n])=>n===name)[1];
+  const maxW = maxWeightFor(zone);
+  if (g > maxW) {
     box.classList.add('active'); inn.classList.remove('show'); pr.style.display='';
-    pr.innerHTML = '⚠️ This parcel is over 2 kg.<br>Please separate the parcel.';
+    pr.innerHTML = `⚠️ This parcel is over ${(maxW/1000)} kg.<br>Please contact us for a custom quote.`;
     return;
   }
 
-  const zone = DEST.find(([n])=>n===name)[1];
   const price = priceFor(zone, g);
-  const isUK = name === 'United Kingdom';
   const parts = [];
   if (qty.hoodie) parts.push(qty.hoodie + ' Hoodie' + (qty.hoodie>1?'s':''));
   if (qty.tee)    parts.push(qty.tee + ' Boxy T-shirt' + (qty.tee>1?'s':''));
@@ -467,8 +491,7 @@ function calculate() {
   document.getElementById('destName').textContent = name;
   document.getElementById('priceAmount').textContent = price.toLocaleString();
   document.getElementById('priceNote').innerHTML =
-    `Shipping ${parts.join(' + ')} to <strong>${name}</strong>.` +
-    (isUK ? ' Parcels to the UK can weigh up to 5,000 g.' : '');
+    `Shipping ${parts.join(' + ')} to <strong>${name}</strong>.`;
 }
 </script>
 </body>
