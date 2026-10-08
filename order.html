@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CAYS · Pre-order</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* CAYS brand (same tokens as the shipping calculators). Layout: items + delivery on the left, a sticky receipt on the right; one column with a bottom total bar on phones. */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+[hidden] { display: none !important; }
+:root {
+  --ink: #1a1a18; --choc: #4a3424; --sand: #f5f0e8; --clay: #c8a97e; --clay-dark: #a8845a;
+  --clay-pale: #ecdfc8; --smoke: #6b6860; --fog: #e4dfd6; --white: #fdfcfa;
+  --ok: #2f6b43; --ok-bg: #dcefe0; --warn: #9a5b2f; --warn-bg: #f6e6d6;
+  --serif: 'DM Serif Display', Georgia, serif;
+  --sans: 'DM Sans', 'IBM Plex Sans Thai', system-ui, sans-serif;
+  --mono: 'DM Mono', ui-monospace, monospace;
+  color-scheme: light;
+}
+html { background: var(--sand); }
+body { font-family: var(--sans); background: var(--sand); color: var(--ink); font-size: 15px; line-height: 1.5; min-height: 100vh; }
+button, input { font: inherit; color: inherit; }
+a { color: var(--clay-dark); }
+button:focus-visible, a:focus-visible, input:focus-visible, .method:focus-within { outline: 2px solid var(--clay-dark); outline-offset: 2px; }
+
+.header { background: var(--choc); padding: calc(20px + env(safe-area-inset-top, 0px)) 48px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.brand { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; text-decoration: none; }
+.brand-name { font-family: var(--serif); font-size: 34px; color: var(--clay); letter-spacing: .1em; line-height: 1; }
+.brand-sub { font-size: 10.5px; font-weight: 600; color: #e8ddc8; letter-spacing: .22em; text-transform: uppercase; }
+.header a.back { font-size: 13px; color: #e8ddc8; }
+.clay-bar { background: var(--clay); padding: 10px 48px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.clay-bar span { font-size: 11px; font-weight: 600; letter-spacing: .13em; text-transform: uppercase; color: var(--ink); }
+.clay-bar .dot { opacity: .3; }
+
+.main { max-width: 1080px; margin: 0 auto; padding: 32px 32px 120px; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 28px; align-items: start; }
+.col { display: grid; gap: 28px; min-width: 0; }
+.intro h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(30px, 6vw, 40px); line-height: 1.1; text-wrap: balance; }
+.intro p { color: var(--smoke); margin-top: 6px; }
+.status { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; }
+.status.open { background: var(--ok-bg); color: var(--ok); }
+.status.soon { background: var(--clay-pale); color: var(--clay-dark); }
+.status.closed { background: #efe4e0; color: #9a6b5f; }
+.status .cd { font-family: var(--mono); letter-spacing: 0; text-transform: none; font-weight: 500; }
+
+.step-head { display: grid; gap: 2px; }
+.step-no { font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--clay-dark); }
+.step-title { font-family: var(--serif); font-weight: 400; font-size: 24px; line-height: 1.2; }
+.step-hint { font-size: 13px; color: var(--smoke); }
+.section { display: grid; gap: 14px; }
+
+.product { background: var(--white); border: 1.5px solid var(--fog); border-radius: 10px; padding: 18px; display: grid; gap: 12px; }
+.p-top { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; }
+.p-pic { width: 56px; height: 56px; border-radius: 10px; background: var(--choc); display: grid; place-items: center; font-size: 26px; overflow: hidden; }
+.p-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.p-name { font-weight: 700; font-size: 16px; letter-spacing: .02em; }
+.p-size { font-size: 12px; color: var(--smoke); }
+.p-price { font-family: var(--mono); font-weight: 500; font-size: 16px; white-space: nowrap; }
+.colour { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--fog); }
+.c-name { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
+.swatch { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(26,26,24,.18); flex: none; }
+.sizes { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 8px; }
+.stepper { display: flex; align-items: center; justify-content: space-between; border: 1.5px solid var(--fog); border-radius: 8px; background: var(--sand); min-width: 0; }
+.stepper.on { border-color: var(--clay); background: var(--clay-pale); }
+.stepper .sz { font-weight: 700; font-size: 13px; padding-left: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.stepper button { border: 0; background: transparent; width: 32px; height: 36px; font-family: var(--mono); font-size: 18px; cursor: pointer; flex: none; }
+.stepper button:disabled { color: var(--fog); cursor: default; }
+.stepper output { font-family: var(--mono); font-weight: 500; min-width: 14px; text-align: center; flex: none; }
+.cell { display: grid; gap: 3px; min-width: 0; }
+.cell .note { font-size: 11px; font-weight: 600; color: var(--warn); padding-left: 2px; }
+.stepper.out { background: repeating-linear-gradient(135deg, var(--sand) 0 6px, var(--fog) 6px 7px); border-style: dashed; }
+.stepper.out .sz { color: var(--smoke); text-decoration: line-through; }
+.pill-out { font-size: 10.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; background: #efe4e0; color: #9a6b5f; padding: 3px 8px; border-radius: 20px; justify-self: end; }
+.stocknote { font-size: 12.5px; padding: 8px 12px; border-radius: 8px; background: var(--warn-bg); color: var(--warn); }
+
+.methods { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.method { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; padding: 14px; background: var(--white); border: 1.5px solid var(--fog); border-radius: 10px; cursor: pointer; }
+.method input { accent-color: var(--choc); margin-top: 4px; grid-row: span 2; }
+.method .m-title { font-weight: 700; font-size: 14px; }
+.method .m-sub { font-size: 12.5px; color: var(--smoke); grid-column: 2; }
+.method.sel { border-color: var(--clay); background: #fffaf2; }
+
+.intl { background: var(--white); border: 1.5px solid var(--clay); border-radius: 10px; padding: 18px; display: grid; gap: 14px; }
+.intl-label { font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--smoke); }
+.picked { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--clay-pale); border-radius: 8px; }
+.picked .flag { font-size: 22px; }
+.picked .nm { font-weight: 700; flex: 1; min-width: 0; }
+.linkbtn { background: none; border: 0; color: var(--clay-dark); font-weight: 600; cursor: pointer; text-decoration: underline; }
+.search { width: 100%; padding: 11px 12px; border: 1.5px solid var(--fog); border-radius: 8px; background: var(--sand); }
+.search:focus { outline: none; border-color: var(--clay); }
+.quick { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1.5px solid var(--fog); background: var(--sand); border-radius: 20px; padding: 5px 10px; font-size: 13px; cursor: pointer; }
+.chip:hover { border-color: var(--clay); }
+.clist { max-height: 260px; overflow-y: auto; border: 1px solid var(--fog); border-radius: 8px; }
+.crow { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 12px; border: 0; border-bottom: 1px solid var(--fog); background: var(--white); cursor: pointer; font-size: 14px; }
+.crow:hover { background: var(--clay-pale); }
+.cempty { padding: 12px; font-size: 13px; color: var(--smoke); }
+
+.parcel { display: grid; gap: 8px; }
+.parcel-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: 13px; color: var(--smoke); }
+.parcel-top strong { font-family: var(--mono); font-weight: 500; color: var(--ink); font-size: 15px; }
+.meter { position: relative; height: 12px; border-radius: 6px; background: var(--sand); border: 1px solid var(--fog); overflow: hidden; }
+.meter .fill { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--clay); transition: width .25s; }
+.meter .fill.over { background: #b5654a; }
+.meter .tick { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(74,52,36,.12); }
+.ship-line { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.ship-line .amt { font-family: var(--mono); font-size: 26px; font-weight: 500; }
+.tip { font-size: 13px; padding: 8px 12px; border-radius: 8px; background: var(--ok-bg); color: var(--ok); }
+.warnbox { font-size: 13px; padding: 10px 12px; border-radius: 8px; background: var(--warn-bg); color: var(--warn); }
+
+.receipt { position: sticky; top: 16px; background: var(--white); border: 1.5px solid var(--clay); border-radius: 10px; overflow: hidden; }
+.r-head { background: var(--choc); color: var(--clay-pale); padding: 14px 18px; display: flex; justify-content: space-between; align-items: baseline; }
+.r-head h2 { font-family: var(--serif); font-weight: 400; font-size: 20px; color: var(--clay); }
+.r-head span { font-size: 12px; }
+.r-body { padding: 16px 18px; display: grid; gap: 12px; }
+.r-lines { display: grid; gap: 6px; font-size: 13.5px; }
+.r-line { display: flex; justify-content: space-between; gap: 12px; }
+.r-line span:first-child { min-width: 0; }
+.r-line span:last-child { font-family: var(--mono); white-space: nowrap; }
+.r-empty { color: var(--smoke); font-size: 13.5px; }
+.r-sum { border-top: 1px dashed var(--fog); padding-top: 10px; display: grid; gap: 4px; font-size: 13.5px; }
+.r-total { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; border-top: 1.5px solid var(--ink); padding-top: 10px; }
+.r-total .big { font-family: var(--mono); font-size: 32px; font-weight: 500; line-height: 1; }
+.r-total .cur { font-size: 13px; color: var(--smoke); font-weight: 600; }
+.pay { display: grid; gap: 8px; background: var(--sand); border-radius: 8px; padding: 12px; font-size: 13px; }
+.pay .bank { font-weight: 600; word-break: break-word; }
+.pay img { width: 100%; max-width: 240px; border-radius: 8px; justify-self: center; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1.5px solid var(--choc); background: transparent; color: var(--choc); padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; text-decoration: none; }
+.btn.primary { background: var(--choc); color: var(--clay-pale); width: 100%; padding: 14px; font-size: 15px; }
+.btn.primary[aria-disabled="true"] { opacity: .4; pointer-events: none; }
+.why { font-size: 12.5px; color: var(--warn); }
+.after { font-size: 12px; color: var(--smoke); }
+
+.bar { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: var(--choc); color: var(--clay-pale); padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); }
+.bar-in { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.bar .lbl { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; }
+.bar .amt { font-family: var(--mono); font-size: 22px; color: var(--white); }
+.bar a { background: var(--clay); color: var(--ink); text-decoration: none; font-weight: 700; padding: 10px 14px; border-radius: 8px; font-size: 14px; }
+.foot { text-align: center; padding: 8px 16px 40px; font-size: 12px; color: var(--smoke); }
+.loading { padding: 80px 16px; text-align: center; color: var(--smoke); }
+
+@media (max-width: 920px) {
+  .main { grid-template-columns: minmax(0, 1fr); padding: 24px 16px 120px; }
+  .receipt { position: static; }
+  .bar { display: block; }
+}
+@media (max-width: 680px) {
+  .header, .clay-bar { padding-left: 16px; padding-right: 16px; }
+  .brand-name { font-size: 28px; }
+}
+@media (prefers-reduced-motion: reduce) { .meter .fill { transition: none; } }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a class="brand" href="./"><span class="brand-name">CAYS</span><span class="brand-sub">Pre-order</span></a>
+  <a class="back" href="./">All shipping calculators</a>
+</header>
+<div class="clay-bar" id="clayBar"><span>Ships from Thailand</span><span class="dot">·</span><span>Worldwide</span></div>
+
+<div class="loading" id="loading">Loading the collection…</div>
+
+<main class="main" id="app" hidden>
+  <div class="col">
+    <section class="intro">
+      <h1 id="title">Collection</h1>
+      <p id="period"></p>
+      <span class="status" id="status"></span>
+    </section>
+
+    <section class="section" aria-labelledby="s1">
+      <div class="step-head">
+        <span class="step-no">Step 1</span>
+        <h2 class="step-title" id="s1">Pick your items · เลือกสินค้า</h2>
+        <span class="step-hint" id="s1hint"></span>
+      </div>
+      <div class="section" id="products"></div>
+    </section>
+
+    <section class="section" aria-labelledby="s2">
+      <div class="step-head">
+        <span class="step-no">Step 2</span>
+        <h2 class="step-title" id="s2">How will you get it? · วิธีรับสินค้า</h2>
+      </div>
+      <div class="methods" id="methods" role="radiogroup" aria-labelledby="s2"></div>
+
+      <div class="intl" id="intl" hidden>
+        <div class="intl-label">Ship to · ประเทศปลายทาง</div>
+        <div class="picked" id="picked" hidden>
+          <span class="flag" id="pFlag"></span><span class="nm" id="pName"></span>
+          <button class="linkbtn" type="button" id="change">Change</button>
+        </div>
+        <div id="chooser">
+          <div class="quick" id="quick"></div>
+          <input class="search" id="csearch" type="search" placeholder="Search your country…" autocomplete="off" aria-label="Search your country" style="margin-top:10px">
+          <div class="clist" id="clist" style="margin-top:8px"></div>
+        </div>
+        <div class="parcel" id="parcel">
+          <div class="parcel-top"><span>Parcel weight (packed)</span><span><strong id="wNow">0 g</strong> / <span id="wMax">2,000 g</span> max</span></div>
+          <div class="meter" id="meter" aria-hidden="true"><div class="fill" id="fill"></div></div>
+          <div class="ship-line" id="shipLine" hidden><span id="shipTo"></span><span><span class="amt" id="shipAmt">0</span> THB</span></div>
+          <div class="tip" id="tip" hidden></div>
+          <div class="warnbox" id="over" hidden></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <aside class="receipt" id="summary" aria-labelledby="rh">
+    <div class="r-head"><h2 id="rh">Your order</h2><span id="rCount">0 items</span></div>
+    <div class="r-body">
+      <div class="stocknote" id="stockNote" hidden></div>
+      <div class="r-lines" id="lines"></div>
+      <div class="r-sum">
+        <div class="r-line"><span>Items · สินค้า</span><span id="sub">0</span></div>
+        <div class="r-line"><span id="shipLbl">Shipping · ค่าส่ง</span><span id="ship">–</span></div>
+      </div>
+      <div class="r-total"><span><strong>Total to pay</strong><br><span class="cur">ยอดชำระ (THB)</span></span><span class="big" id="total">0</span></div>
+      <div class="row"><button class="btn" type="button" id="copyTotal">Copy amount</button><button class="btn" type="button" id="copySummary">Copy order summary</button></div>
+      <div class="pay">
+        <span>Step 3 · Pay this exact amount · โอนตามยอดนี้</span>
+        <span class="bank" id="bank"></span>
+        <div class="row"><button class="btn" type="button" id="copyBank">Copy account no.</button></div>
+        <img id="qr" alt="QR code for PromptPay and card payment" hidden>
+      </div>
+      <a class="btn primary" id="go" href="#" target="_blank" rel="noopener" aria-disabled="true">Continue to order form →</a>
+      <p class="why" id="why"></p>
+      <p class="after">The form opens with your items, delivery and amount already filled in. Add your details and the payment slip, then submit. · ฟอร์มจะกรอกสินค้าและยอดเงินให้แล้ว เพิ่มข้อมูลและแนบสลิป แล้วกดส่ง</p>
+    </div>
+  </aside>
+</main>
+
+<div class="bar" id="bar" hidden>
+  <div class="bar-in">
+    <div><div class="lbl" id="barCount">0 items</div><div class="amt" id="barTotal">0 THB</div></div>
+    <a href="#summary">Review &amp; pay ↓</a>
+  </div>
+</div>
+<div class="foot">Prices in Thai Baht (THB) · Shipping from Thailand · <span id="updated"></span></div>
+
+<script src="rates.js"></script>
+<script>
+/* Which collection to show: order.html?c=foggy loads orders/foggy.js (published from the Google Sheet). */
+var DEFAULT_COLLECTION = 'foggy';
+
+(function () {
+  var key = (new URLSearchParams(location.search).get('c') || DEFAULT_COLLECTION).toLowerCase();
+  if (!/^[a-z0-9-]+$/.test(key)) key = DEFAULT_COLLECTION;
+  if (window.CAYS_ORDER) return start(window.CAYS_ORDER);          // data already on the page (preview)
+  var s = document.createElement('script');
+  s.src = 'orders/' + key + '.js?v=' + Math.floor(Date.now() / 300000); // refresh at least every 5 min
+  s.onload = function () { start(window.CAYS_ORDER); };
+  s.onerror = function () { document.getElementById('loading').textContent = 'This collection page was not found. Please check the link.'; };
+  document.head.appendChild(s);
+})();
+
+function start(D) {
+  if (!D) { document.getElementById('loading').textContent = 'This collection page was not found.'; return; }
+  var SHIP = window.CAYS_SHIP;
+  var products = D.products || [];
+  var maxQ = D.maxQ || 5;
+  var store = 'cays-order-' + (D.key || 'x');
+  var state = { qty: {}, method: '', country: '' };
+  try { var sv = JSON.parse(localStorage.getItem(store) || 'null'); if (sv && sv.qty) state = sv; } catch (e) {}
+  function save() { try { localStorage.setItem(store, JSON.stringify(state)); } catch (e) {} }
+
+  function $(id) { return document.getElementById(id); }
+  function el(t, c, txt) { var e = document.createElement(t); if (c) e.className = c; if (txt != null) e.textContent = txt; return e; }
+  function fmt(n) { return Number(n || 0).toLocaleString('en-US'); }
+  function k(code, label) { return code + '|' + label; }
+  function flagOf(c) { return (SHIP.FLAGS && SHIP.FLAGS[c]) || '🌍'; }
+  /* Stock: D.stock = { 'LS-GREY-M': piecesLeft } for colours/sizes that have a limit. */
+  var STOCK = D.stock || {}, LOW = D.lowStock || 0;
+  function skuOf(code, color, size) { return [code, String(color).toUpperCase().replace(/[^A-Z0-9]+/g, ''), String(size).toUpperCase()].filter(Boolean).join('-'); }
+  function leftOf(p, r) { var s = skuOf(p.code, r[1], r[2]); return Object.prototype.hasOwnProperty.call(STOCK, s) ? STOCK[s] : null; }
+  function capOf(p, r) { var l = leftOf(p, r); return l === null ? maxQ : Math.max(0, Math.min(maxQ, l)); }
+  var trimmed = [];
+  products.forEach(function (p) { p.rows.forEach(function (r) {
+    var id = k(p.code, r[0]), q = state.qty[id] || 0, cap = capOf(p, r);
+    if (q > cap) { state.qty[id] = cap; trimmed.push(p.name + ' ' + r[0] + (cap ? ' (now ' + cap + ', only ' + cap + ' left)' : ' (sold out, removed)')); }
+  }); });
+
+  $('loading').hidden = true; $('app').hidden = false; $('bar').hidden = false;
+  document.title = 'CAYS · ' + (D.collection || 'Pre-order');
+  $('title').textContent = D.collection || 'Pre-order';
+  $('period').textContent = D.period || '';
+  $('updated').textContent = D.publishedAt ? 'Updated ' + D.publishedAt : '';
+  var bar = $('clayBar'); bar.innerHTML = '';
+  ['Ships from Thailand', 'Worldwide shipping', D.event ? 'Booth pickup at ' + D.event : ''].filter(Boolean).forEach(function (t, i) {
+    if (i) bar.appendChild(el('span', 'dot', '·')); bar.appendChild(el('span', null, t));
+  });
+  $('s1hint').textContent = 'Tap + to add. Up to ' + maxQ + ' per colour and size.' ;
+  if (D.sizeGuide) { var sg = el('a', null, ' Size guide →'); sg.href = D.sizeGuide; sg.target = '_blank'; sg.rel = 'noopener'; $('s1hint').appendChild(sg); }
+
+  /* ---------- order window (Thai time) ---------- */
+  var opens = D.opens ? new Date(D.opens) : null, closes = D.closes ? new Date(D.closes) : null;
+  function thaiTime(d) {
+    return d.toLocaleString('en-GB', { timeZone: 'Asia/Bangkok', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' (Thai time)';
+  }
+  function left(ms) {
+    var m = Math.max(0, Math.floor(ms / 60000)), d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mm = m % 60;
+    return (d ? d + 'd ' : '') + (d || h ? h + 'h ' : '') + mm + 'm';
+  }
+  function phase() {
+    var now = Date.now();
+    if (opens && now < opens.getTime()) return 'soon';
+    if (closes && now >= closes.getTime()) return 'closed';
+    return 'open';
+  }
+  function paintStatus() {
+    var p = phase(), s = $('status'), now = Date.now();
+    s.className = 'status ' + p; s.innerHTML = '';
+    if (p === 'soon') { s.appendChild(document.createTextNode('Opens ' + thaiTime(opens) + ' · ')); s.appendChild(el('span', 'cd', 'in ' + left(opens - now))); }
+    else if (p === 'closed') s.textContent = 'Pre-order closed · ปิดรับแล้ว';
+    else { s.appendChild(document.createTextNode('Open now · เปิดรับแล้ว')); if (closes) { s.appendChild(document.createTextNode(' · closes ')); s.appendChild(el('span', 'cd', 'in ' + left(closes - now))); } }
+  }
+
+  /* ---------- products ---------- */
+  var SW = [[/strawberr|pink|rose/i, '#efa6b6'], [/grey|gray|hazy|fog|mist/i, '#a7adb5'], [/sunny|yellow|lemon/i, '#f2d26a'],
+    [/day|white|cream|ivory/i, '#f6f1e4'], [/night|navy|midnight/i, '#2b3552'], [/black/i, '#1d1f24'], [/sea|blue|sky/i, '#8db6dd'],
+    [/sand|beige|khaki|tan/i, '#d7c19d'], [/green|olive|mint/i, '#9cc3a0'], [/red/i, '#c95a5a'], [/brown|choc/i, '#7a5a43'], [/purple|lilac|lavender/i, '#b7a5d6']];
+  function swatch(n) { for (var i = 0; i < SW.length; i++) if (SW[i][0].test(n)) return SW[i][1]; return 'var(--clay-pale)'; }
+
+  products.forEach(function (p) {
+    var card = el('article', 'product');
+    var top = el('div', 'p-top');
+    var pic = el('div', 'p-pic');
+    if (p.photo) { var im = el('img'); im.src = p.photo; im.alt = ''; im.loading = 'lazy'; im.onerror = function () { pic.textContent = '👕'; }; pic.appendChild(im); } else pic.textContent = p.icon || '👕';
+    var mid = el('div'); mid.appendChild(el('div', 'p-name', p.name)); if (p.sizeNote) mid.appendChild(el('div', 'p-size', p.sizeNote));
+    top.appendChild(pic); top.appendChild(mid); top.appendChild(el('div', 'p-price', fmt(p.price) + ' ฿'));
+    card.appendChild(top);
+    if (p.rows.length && p.rows.every(function (r) { return capOf(p, r) === 0; })) top.appendChild(el('span', 'pill-out', 'Sold out'));
+    (p.colors || []).forEach(function (c) {
+      var rows = p.rows.filter(function (r) { return r[1] === c; }); if (!rows.length) return;
+      var wrap = el('div', 'colour'), cn = el('div', 'c-name'), sw = el('span', 'swatch'); sw.style.background = swatch(c);
+      cn.appendChild(sw); cn.appendChild(document.createTextNode(c)); wrap.appendChild(cn);
+      var sizes = el('div', 'sizes');
+      rows.forEach(function (r) {
+        var id = k(p.code, r[0]), st = el('div', 'stepper'), cell = el('div', 'cell');
+        var left = leftOf(p, r), cap = capOf(p, r);
+        st.appendChild(el('span', 'sz', r[2] || r[0]));
+        var minus = el('button', null, '−'), out = el('output'), plus = el('button', null, '+');
+        minus.type = plus.type = 'button';
+        minus.setAttribute('aria-label', 'Remove one ' + p.name + ' ' + r[0]); plus.setAttribute('aria-label', 'Add one ' + p.name + ' ' + r[0]);
+        function paint() { var q = state.qty[id] || 0; out.textContent = q; minus.disabled = q <= 0; plus.disabled = q >= cap; st.classList.toggle('on', q > 0); }
+        minus.onclick = function () { state.qty[id] = Math.max(0, (state.qty[id] || 0) - 1); paint(); update(); };
+        plus.onclick = function () { state.qty[id] = Math.min(cap, (state.qty[id] || 0) + 1); paint(); update(); };
+        st.appendChild(minus); st.appendChild(out); st.appendChild(plus); cell.appendChild(st);
+        if (left !== null && left <= 0) { st.classList.add('out'); plus.setAttribute('aria-label', p.name + ' ' + r[0] + ' is sold out'); cell.appendChild(el('span', 'note', 'Sold out · หมด')); }
+        else if (left !== null && LOW && left <= LOW) cell.appendChild(el('span', 'note', 'Only ' + left + ' left'));
+        sizes.appendChild(cell); paint();
+      });
+      wrap.appendChild(sizes); card.appendChild(wrap);
+    });
+    $('products').appendChild(card);
+  });
+
+  /* ---------- delivery methods ---------- */
+  (D.methods || []).forEach(function (m) {
+    var lab = el('label', 'method'); lab.setAttribute('data-id', m.id);
+    var inp = el('input'); inp.type = 'radio'; inp.name = 'method'; inp.value = m.id; inp.checked = state.method === m.id;
+    inp.onchange = function () { state.method = m.id; update(); if (m.id === 'INTL' && !state.country) setTimeout(function () { $('csearch').focus(); }, 50); };
+    lab.appendChild(inp); lab.appendChild(el('span', 'm-title', m.label)); if (m.sub) lab.appendChild(el('span', 'm-sub', m.sub));
+    $('methods').appendChild(lab);
+  });
+  if (!(D.methods || []).some(function (m) { return m.id === state.method; })) state.method = '';
+
+  /* ---------- country picker ---------- */
+  var names = SHIP.DEST.map(function (d) { return d[0]; });
+  if (state.country && names.indexOf(state.country) < 0) state.country = '';
+  var popular = (D.popular || []).filter(function (n) { return names.indexOf(n) >= 0; });
+  popular.forEach(function (n) {
+    var b = el('button', 'chip', flagOf(n) + ' ' + n.replace(' (Mainland)', '')); b.type = 'button';
+    b.onclick = function () { pick(n); }; $('quick').appendChild(b);
+  });
+  function renderList(q) {
+    var box = $('clist'); box.innerHTML = '';
+    var list = names.filter(function (n) { return n.toLowerCase().indexOf(q.toLowerCase()) >= 0; });
+    if (!list.length) box.appendChild(el('div', 'cempty', 'No match. We may not ship there yet. Please ask ' + (D.line || 'us') + '.'));
+    list.forEach(function (n) {
+      var b = el('button', 'crow'); b.type = 'button';
+      b.appendChild(el('span', null, flagOf(n))); b.appendChild(el('span', null, n));
+      b.onclick = function () { pick(n); }; box.appendChild(b);
+    });
+  }
+  function pick(n) { state.country = n; $('csearch').value = ''; renderList(''); update(); }
+  $('csearch').oninput = function () { renderList(this.value); };
+  $('change').onclick = function () { state.country = ''; update(); $('csearch').focus(); };
+  renderList('');
+
+  /* ---------- maths ---------- */
+  var ticks = $('meter');
+  function totals() {
+    var lines = [], items = 0, sub = 0, grams = 0;
+    products.forEach(function (p) {
+      p.rows.forEach(function (r) {
+        var q = state.qty[k(p.code, r[0])] || 0;
+        if (q > 0) { lines.push({ p: p, row: r, q: q }); items += q; sub += q * p.price; grams += q * (p.weight || 0); }
+      });
+    });
+    var packed = items ? grams + (D.packaging || 0) : 0;
+    var t = { lines: lines, items: items, sub: sub, grams: packed, fee: 0, zone: null, max: 2000, over: false, ready: true };
+    if (state.method === 'INTL') {
+      t.zone = state.country ? SHIP.zoneOf(state.country) : null;
+      t.max = t.zone ? SHIP.maxWeightFor(t.zone) : 2000;
+      t.over = packed > t.max;
+      t.ready = !!t.zone && items > 0 && !t.over;
+      if (t.ready) t.fee = SHIP.priceFor(t.zone, packed, D.buffer || 0);
+    }
+    t.total = t.sub + t.fee;
+    return t;
+  }
+  function freeRoom(t) {  // products that fit in the same shipping price
+    if (!t.ready || state.method !== 'INTL') return [];
+    return products.filter(function (p) {
+      var g = t.grams + (p.weight || 0);
+      return p.weight && g <= t.max && SHIP.priceFor(t.zone, g, D.buffer || 0) === t.fee;
+    }).map(function (p) { return p.name; });
+  }
+
+  function formLink(t) {
+    var m = (D.methods || []).filter(function (x) { return x.id === state.method; })[0]; if (!m) return '';
+    var f = (D.forms || {})[m.form]; if (!f || !f.url) return '';
+    var ps = ['usp=pp_url'];
+    t.lines.forEach(function (l) { var e = f.rows && f.rows[l.p.code] && f.rows[l.p.code][l.row[0]]; if (e) ps.push(e + '=' + encodeURIComponent(String(l.q))); });
+    if (f.method && f.methodValues && f.methodValues[state.method]) ps.push(f.method + '=' + encodeURIComponent(f.methodValues[state.method]));
+    if (state.method === 'INTL') {
+      if (f.country && state.country) ps.push(f.country + '=' + encodeURIComponent(state.country));
+      if (f.fee) ps.push(f.fee + '=' + t.fee);
+    }
+    if (f.amount) ps.push(f.amount + '=' + t.total);
+    return f.url + (f.url.indexOf('?') < 0 ? '?' : '&') + ps.join('&');
+  }
+
+  function update() {
+    var t = totals(), intl = state.method === 'INTL';
+    // methods + country
+    Array.prototype.forEach.call(document.querySelectorAll('.method'), function (l) { l.classList.toggle('sel', l.getAttribute('data-id') === state.method); });
+    $('intl').hidden = !intl;
+    $('picked').hidden = !state.country; $('chooser').hidden = !!state.country;
+    if (state.country) { $('pFlag').textContent = flagOf(state.country); $('pName').textContent = state.country; }
+    // parcel meter
+    if (intl) {
+      $('wNow').textContent = fmt(t.grams) + ' g'; $('wMax').textContent = fmt(t.max) + ' g';
+      $('fill').style.width = Math.min(100, t.grams / t.max * 100) + '%'; $('fill').classList.toggle('over', t.over);
+      Array.prototype.forEach.call(ticks.querySelectorAll('.tick'), function (x) { x.remove(); });
+      for (var g = 500; g < t.max; g += 500) { var tk = el('span', 'tick'); tk.style.left = (g / t.max * 100) + '%'; ticks.appendChild(tk); }
+      $('shipLine').hidden = !t.ready;
+      if (t.ready) { $('shipTo').textContent = 'Shipping to ' + flagOf(state.country) + ' ' + state.country; $('shipAmt').textContent = fmt(t.fee); }
+      var room = freeRoom(t);
+      $('tip').hidden = !room.length;
+      if (room.length) $('tip').textContent = '✦ Room for one more ' + room.slice(0, 2).join(' or ') + ' at the same shipping price.';
+      $('over').hidden = !t.over;
+      if (t.over) $('over').textContent = 'This parcel is ' + fmt(t.grams) + ' g, over the ' + fmt(t.max) + ' g limit for ' + state.country + '. Remove an item, or place a second order for the rest.';
+    }
+    // receipt
+    var lb = $('lines'); lb.innerHTML = '';
+    if (!t.lines.length) lb.appendChild(el('div', 'r-empty', 'Nothing yet. Tap + on the items you want.'));
+    t.lines.forEach(function (l) { var r = el('div', 'r-line'); r.appendChild(el('span', null, l.q + ' × ' + l.p.name + ' · ' + l.row[0])); r.appendChild(el('span', null, fmt(l.q * l.p.price))); lb.appendChild(r); });
+    $('sub').textContent = fmt(t.sub);
+    $('shipLbl').textContent = intl && state.country ? 'Shipping to ' + flagOf(state.country) + ' ' + state.country : 'Shipping · ค่าส่ง';
+    $('ship').textContent = !state.method ? '–' : (intl ? (t.ready ? fmt(t.fee) : '–') : 'Free');
+    $('total').textContent = fmt(t.total);
+    $('rCount').textContent = t.items + (t.items === 1 ? ' item' : ' items');
+    $('barCount').textContent = t.items + (t.items === 1 ? ' item' : ' items');
+    $('barTotal').textContent = fmt(t.total) + ' THB';
+    // can continue?
+    var p = phase(), why = '';
+    if (!t.items) why = 'Add at least one item. · เพิ่มสินค้าอย่างน้อย 1 ชิ้น';
+    else if (!state.method) why = 'Choose how you will get your order. · เลือกวิธีรับสินค้า';
+    else if (intl && !state.country) why = 'Choose your country. · เลือกประเทศ';
+    else if (intl && t.over) why = 'Your parcel is over the weight limit.';
+    else if (p === 'soon') why = 'Pre-order opens ' + thaiTime(opens) + '. Your cart is saved on this device until then.';
+    else if (p === 'closed') why = 'This pre-order is closed. · ปิดรับพรีออเดอร์แล้ว';
+    var link = why ? '' : formLink(t);
+    if (!why && !link) why = 'The order form is not ready yet. Please try again later.';
+    $('why').textContent = why;
+    $('go').setAttribute('aria-disabled', why ? 'true' : 'false');
+    $('go').href = link || '#';
+    save();
+  }
+
+  /* ---------- payment + copy ---------- */
+  $('bank').textContent = D.bank || '';
+  if (D.qr) { $('qr').src = D.qr; $('qr').hidden = false; }
+  function copy(text, btn) {
+    var o = btn.textContent, done = function () { btn.textContent = 'Copied ✓'; setTimeout(function () { btn.textContent = o; }, 1400); };
+    function fb() { var ta = el('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e) {} ta.remove(); done(); }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fb); else fb();
+  }
+  $('copyBank').onclick = function () { var m = (D.bank || '').match(/[0-9][0-9-]{6,}[0-9]/); copy(m ? m[0] : (D.bank || ''), this); };
+  $('copyTotal').onclick = function () { copy(String(totals().total), this); };
+  $('copySummary').onclick = function () {
+    var t = totals(), m = (D.methods || []).filter(function (x) { return x.id === state.method; })[0];
+    var lines = ['CAYS · ' + (D.collection || '')].concat(t.lines.map(function (l) { return l.q + ' × ' + l.p.name + ' ' + l.row[0] + ' = ' + fmt(l.q * l.p.price); }));
+    if (m) lines.push('Delivery: ' + m.label + (state.method === 'INTL' && state.country ? ' → ' + state.country + ' (' + fmt(t.grams) + ' g)' : ''));
+    if (t.fee) lines.push('Shipping: ' + fmt(t.fee));
+    lines.push('TOTAL: ' + fmt(t.total) + ' THB');
+    copy(lines.join('\n'), this);
+  };
+  $('go').addEventListener('click', function (e) {
+    if (this.getAttribute('aria-disabled') === 'true') { e.preventDefault(); return; }
+    if (D.demo) { e.preventDefault(); $('why').textContent = 'Preview only: the real page opens the order form with everything filled in.'; }
+  });
+
+  if (trimmed.length) { $('stockNote').hidden = false; $('stockNote').textContent = 'Stock changed since your last visit, so we updated your cart: ' + trimmed.join(', ') + '.'; }
+  paintStatus(); setInterval(function () { paintStatus(); update(); }, 30000);
+  update();
+}
+</script>
+</body>
+</html>
